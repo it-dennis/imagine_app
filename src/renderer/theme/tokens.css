@@ -1,0 +1,145 @@
+/* ============================================================
+   IMAGINE — Design Tokens
+   Cross-platform desktop app for creating retro disk images
+   ============================================================ */
+
+:root {
+  /* ---------- COLOR: Neutral surfaces (warm dunkel) ---------- */
+  --im-bg-0:        #0e0d10;
+  --im-bg-1:        #15141a;
+  --im-bg-2:        #1d1c24;
+  --im-bg-3:        #26252e;
+  --im-bg-4:        #322f3c;
+
+  --im-line-soft:   #2a2934;
+  --im-line:        #3a3845;
+  --im-line-strong: #514e5f;
+
+  --im-text-1:      #ecebf0;
+  --im-text-2:      #b8b5c4;
+  --im-text-3:      #7f7c8c;
+  --im-text-4:      #56536a;
+
+  /* ---------- COLOR: Accent (default = phosphor green) ---------- */
+  --im-accent:        #4adb83;
+  --im-accent-soft:   #4adb8322;
+  --im-accent-strong: #2cb867;
+  --im-accent-fg:     #062013;
+
+  /* ---------- COLOR: Retro palette ---------- */
+  --im-c64-blue:    #4040e0;
+  --im-c64-light:   #a0a0ff;
+  --im-amiga-orng:  #ff8c42;
+  --im-amiga-grey:  #c8c4b8;
+  --im-atari-sand:  #d8d2c0;
+  --im-dos-amber:   #ffb000;
+  --im-msx-cyan:    #58c4dc;
+  --im-spectrum-red:#e04050;
+
+  /* ---------- COLOR: Semantic ---------- */
+  --im-success:     #4adb83;
+  --im-warning:     #ffb000;
+  --im-danger:      #ff5470;
+  --im-info:        #58c4dc;
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --im-font-ui:     "Inter", "Helvetica Neue", system-ui, sans-serif;
+  --im-font-mono:   "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  --im-font-pixel:  "VT323", "Press Start 2P", monospace;
+
+  --im-fs-xs:       11px;
+  --im-fs-sm:       12px;
+  --im-fs-base:     13px;
+  --im-fs-md:       14px;
+  --im-fs-lg:       16px;
+  --im-fs-xl:       20px;
+  --im-fs-2xl:      28px;
+  --im-fs-3xl:      40px;
+  --im-fs-display:  64px;
+
+  --im-lh-tight:    1.2;
+  --im-lh-base:     1.45;
+  --im-lh-loose:    1.6;
+
+  /* ---------- SPACING (4px grid) ---------- */
+  --im-s-1:  4px;
+  --im-s-2:  8px;
+  --im-s-3:  12px;
+  --im-s-4:  16px;
+  --im-s-5:  20px;
+  --im-s-6:  24px;
+  --im-s-8:  32px;
+  --im-s-10: 40px;
+  --im-s-12: 48px;
+  --im-s-16: 64px;
+
+  /* ---------- RADII ---------- */
+  --im-r-xs: 2px;
+  --im-r-sm: 4px;
+  --im-r-md: 6px;
+  --im-r-lg: 10px;
+  --im-r-xl: 16px;
+
+  /* ---------- ELEVATION ---------- */
+  --im-shadow-1: 0 1px 0 #00000040, 0 1px 2px #00000060;
+  --im-shadow-2: 0 4px 12px #00000080, 0 1px 2px #00000060;
+  --im-shadow-3: 0 16px 40px #000000a0, 0 2px 4px #00000060;
+  --im-glow:     0 0 0 1px var(--im-accent), 0 0 12px var(--im-accent-soft);
+
+  /* ---------- MOTION ---------- */
+  --im-ease:        cubic-bezier(.2, .8, .2, 1);
+  --im-dur-fast:    120ms;
+  --im-dur-base:    200ms;
+  --im-dur-slow:    340ms;
+
+  /* ---------- LAYOUT ---------- */
+  --im-titlebar-h:  36px;
+  --im-toolbar-h:   44px;
+  --im-statusbar-h: 26px;
+  --im-sidebar-w:   260px;
+  --im-inspector-w: 300px;
+}
+
+[data-theme="light"] {
+  --im-bg-0:        #f3f1ea;
+  --im-bg-1:        #fbf9f3;
+  --im-bg-2:        #ffffff;
+  --im-bg-3:        #ece9df;
+  --im-bg-4:        #ddd9cd;
+  --im-line-soft:   #e2dfd4;
+  --im-line:        #cdc8b8;
+  --im-line-strong: #a8a292;
+  --im-text-1:      #1a1815;
+  --im-text-2:      #4a463d;
+  --im-text-3:      #807a6d;
+  --im-text-4:      #a8a292;
+  --im-accent-fg:   #062013;
+}
+
+[data-accent="phosphor"] { --im-accent: #4adb83; --im-accent-soft: #4adb8322; --im-accent-strong: #2cb867; --im-accent-fg: #062013; }
+[data-accent="amber"]    { --im-accent: #ffb000; --im-accent-soft: #ffb00022; --im-accent-strong: #d68f00; --im-accent-fg: #1a1100; }
+[data-accent="c64"]      { --im-accent: #6e6eff; --im-accent-soft: #6e6eff22; --im-accent-strong: #4040e0; --im-accent-fg: #ffffff; }
+[data-accent="neutral"]  { --im-accent: #b8b5c4; --im-accent-soft: #b8b5c422; --im-accent-strong: #807a6d; --im-accent-fg: #1a1815; }
+[data-accent="amiga"]    { --im-accent: #ff8c42; --im-accent-soft: #ff8c4222; --im-accent-strong: #d96d24; --im-accent-fg: #1a0d04; }
+
+[data-font="modern"]  { --im-font-ui: "Inter", system-ui, sans-serif; }
+[data-font="mono"]    { --im-font-ui: "JetBrains Mono", ui-monospace, monospace; }
+[data-font="pixel"]   { --im-font-ui: "VT323", monospace; --im-fs-base: 16px; --im-fs-md: 18px; --im-fs-lg: 20px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--im-font-ui);
+  font-size: var(--im-fs-base);
+  line-height: var(--im-lh-base);
+  color: var(--im-text-1);
+  background: var(--im-bg-0);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
