@@ -23,6 +23,7 @@ interface ImagineAPI {
     format: (diskId: string) => Promise<VirtualDisk>
     delete: (diskId: string) => Promise<boolean>
     eject: (diskId: string) => Promise<boolean>
+    refresh: (diskId: string) => Promise<VirtualDisk>
   }
   iso: {
     create: (opts: { source: string; label: string; output: string }) => Promise<{ path: string; sizeBytes: number }>
@@ -31,6 +32,10 @@ interface ImagineAPI {
     pickFile: (filter?: string[]) => Promise<string | null>
     pickFolder: () => Promise<string | null>
     readFile: (path: string) => Promise<string>
+  }
+  emulator: {
+    launch: (opts: { diskId?: string; system?: System; hasFiles?: boolean }) => Promise<{ kind: 'vice' | 'hatari' }>
+    onDiskChanged: (cb: (diskId: string) => void) => () => void
   }
   prefs: {
     get: () => Promise<Record<string, unknown>>

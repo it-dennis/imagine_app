@@ -4,7 +4,7 @@ import { join } from 'path'
 
 const prefsPath = () => join(app.getPath('userData'), 'prefs.json')
 
-async function readPrefs(): Promise<Record<string, unknown>> {
+export async function readPrefs(): Promise<Record<string, unknown>> {
   try {
     return JSON.parse(await readFile(prefsPath(), 'utf-8'))
   } catch {

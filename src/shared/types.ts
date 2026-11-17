@@ -46,6 +46,7 @@ export interface Prefs {
   font: Font
   language: Language
   vicePath: string
+  hatariPath: string
 }
 
 export interface Toast {

@@ -91,6 +91,11 @@ export function registerDiskHandlers(): void {
     return buildVirtualDisk(diskId, path, format, system)
   })
 
+  ipcMain.handle('disk:refresh', async (_e, diskId: string) => {
+    const { path, format, system } = getOpenDisk(diskId)
+    return buildVirtualDisk(diskId, path, format, system)
+  })
+
   ipcMain.handle('disk:delete', async (_e, diskId: string) => {
     removeOpenDisk(diskId)
     return true

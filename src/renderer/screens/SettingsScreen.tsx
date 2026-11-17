@@ -20,7 +20,7 @@ const CATEGORIES: { id: Category; labelKey: string; Icon: React.FC<{ size?: numb
 export const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation()
   const closeDialog = useUIStore((s) => s.closeDialog)
-  const { theme, accent, font, language, vicePath, setTheme, setAccent, setFont, setLanguage, setVicePath } = usePrefsStore()
+  const { theme, accent, font, language, vicePath, hatariPath, setTheme, setAccent, setFont, setLanguage, setVicePath, setHatariPath } = usePrefsStore()
   const [category, setCategory] = useState<Category>('general')
 
   const changeLanguage = (l: Language) => {
@@ -28,10 +28,10 @@ export const SettingsScreen: React.FC = () => {
     i18n.changeLanguage(l)
   }
 
-  const pickVicePath = async () => {
+  const pickPath = async (apply: (p: string) => void) => {
     try {
       const picked = await window.imagineAPI.fs.pickFile()
-      if (typeof picked === 'string') setVicePath(picked)
+      if (typeof picked === 'string') apply(picked)
     } catch {
       /* IPC not wired up yet */
     }
@@ -99,13 +99,23 @@ export const SettingsScreen: React.FC = () => {
           )}
 
           {category === 'emulator' && (
-            <div className="im-field">
-              <label className="im-label">{t('setEmuPath')}</label>
-              <div className="im-flex im-gap-2">
-                <input className="im-input" value={vicePath} onChange={(e) => setVicePath(e.target.value)} placeholder="/usr/local/bin/x64sc" />
-                <button className="im-btn" onClick={pickVicePath}><Folder size={16} /></button>
+            <>
+              <div className="im-field">
+                <label className="im-label">{t('setEmuPath')}</label>
+                <div className="im-flex im-gap-2">
+                  <input className="im-input" value={vicePath} onChange={(e) => setVicePath(e.target.value)} placeholder="/usr/local/bin/x64sc" />
+                  <button className="im-btn" onClick={() => pickPath(setVicePath)}><Folder size={16} /></button>
+                </div>
+                <div className="im-text-3" style={{ fontSize: 'var(--im-fs-sm)' }}>{t('setEmuViceHint')}</div>
               </div>
-            </div>
+              <div className="im-field">
+                <label className="im-label">{t('setEmuHatariPath')}</label>
+                <div className="im-flex im-gap-2">
+                  <input className="im-input" value={hatariPath} onChange={(e) => setHatariPath(e.target.value)} placeholder="/usr/bin/hatari" />
+                  <button className="im-btn" onClick={() => pickPath(setHatariPath)}><Folder size={16} /></button>
+                </div>
+              </div>
+            </>
           )}
 
           {(category === 'storage' || category === 'cloud' || category === 'shortcuts' || category === 'advanced') && (

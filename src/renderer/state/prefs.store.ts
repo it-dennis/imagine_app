@@ -7,6 +7,7 @@ interface PersistedPrefs {
   font: Font
   language: Language
   vicePath: string
+  hatariPath: string
 }
 
 interface PrefsState extends PersistedPrefs {
@@ -15,10 +16,11 @@ interface PrefsState extends PersistedPrefs {
   setFont: (f: Font) => void
   setLanguage: (l: Language) => void
   setVicePath: (p: string) => void
+  setHatariPath: (p: string) => void
   hydrate: () => Promise<void>
 }
 
-const KEYS: (keyof PersistedPrefs)[] = ['theme', 'accent', 'font', 'language', 'vicePath']
+const KEYS: (keyof PersistedPrefs)[] = ['theme', 'accent', 'font', 'language', 'vicePath', 'hatariPath']
 
 const DEFAULTS: PersistedPrefs = {
   theme: 'dark',
@@ -26,6 +28,7 @@ const DEFAULTS: PersistedPrefs = {
   font: 'modern',
   language: 'de',
   vicePath: '',
+  hatariPath: '',
 }
 
 // localStorage is only a synchronous first-paint cache; prefs.json in userData (via IPC) is the source of truth.
@@ -45,11 +48,13 @@ export const usePrefsStore = create<PrefsState>((set, get) => ({
   font:     load('im.font',     DEFAULTS.font),
   language: load('im.language', DEFAULTS.language),
   vicePath: load('im.vicePath', DEFAULTS.vicePath),
+  hatariPath: load('im.hatariPath', DEFAULTS.hatariPath),
   setTheme:    (theme)    => { persist('theme', theme);       set({ theme }) },
   setAccent:   (accent)   => { persist('accent', accent);     set({ accent }) },
   setFont:     (font)     => { persist('font', font);         set({ font }) },
   setLanguage: (language) => { persist('language', language); set({ language }) },
   setVicePath: (vicePath) => { persist('vicePath', vicePath); set({ vicePath }) },
+  setHatariPath: (hatariPath) => { persist('hatariPath', hatariPath); set({ hatariPath }) },
 
   hydrate: async () => {
     try {

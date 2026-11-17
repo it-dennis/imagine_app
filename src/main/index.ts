@@ -4,6 +4,7 @@ import { registerFsHandlers } from './ipc/fs'
 import { registerDiskHandlers } from './ipc/disk'
 import { registerPrefsHandlers } from './ipc/prefs'
 import { registerIsoHandlers } from './ipc/iso'
+import { registerEmulatorHandlers } from './ipc/emulator'
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -39,6 +40,7 @@ app.whenReady().then(() => {
   registerDiskHandlers()
   registerPrefsHandlers()
   registerIsoHandlers()
+  registerEmulatorHandlers()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

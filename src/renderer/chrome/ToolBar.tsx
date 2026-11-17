@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '../state/ui.store'
+import { useWorkspaceStore } from '../state/workspace.store'
 import {
   FloppyPlus, FolderOpen, Code, Save, Format, Eject,
   Play, Terminal, Disc, Settings, Question,
@@ -13,6 +14,22 @@ interface Props {
 export const ToolBar: React.FC<Props> = ({ hasDisk = false }) => {
   const { t } = useTranslation()
   const openDialog = useUIStore((s) => s.openDialog)
+  const addToast = useUIStore((s) => s.addToast)
+  const activeDisk = useWorkspaceStore((s) => s.disks.find((d) => d.id === s.activeDiskId) ?? null)
+
+  // With a disk: start the emulator for its system and attach it. Without: a blank C64 session.
+  const launchEmulator = async (withDisk: boolean) => {
+    try {
+      const { kind } = await window.imagineAPI.emulator.launch(
+        withDisk && activeDisk
+          ? { diskId: activeDisk.id, hasFiles: activeDisk.files.length > 0 }
+          : { system: activeDisk?.system ?? 'c64' },
+      )
+      addToast({ intent: 'success', title: t('emuStarted'), description: kind === 'vice' ? 'VICE' : 'Hatari' })
+    } catch (err) {
+      addToast({ intent: 'danger', title: t('emuFailed'), description: err instanceof Error ? err.message : String(err) })
+    }
+  }
 
   const btn = (
     title: string,
@@ -45,8 +62,8 @@ export const ToolBar: React.FC<Props> = ({ hasDisk = false }) => {
       </div>
       <div className="im-toolbar-divider" />
       <div className="im-toolbar-group">
-        {btn(t('miOpenInVice'), Play,     undefined)}
-        {btn(t('miBlankVice'),  Terminal, undefined)}
+        {btn(t('miOpenInVice'), Play,     () => launchEmulator(true),  !hasDisk)}
+        {btn(t('miBlankVice'),  Terminal, () => launchEmulator(false))}
       </div>
       <div className="im-toolbar-divider" />
       <div className="im-toolbar-group">

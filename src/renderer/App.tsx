@@ -34,6 +34,16 @@ export const App: React.FC = () => {
     void usePrefsStore.getState().hydrate()
   }, [])
 
+  // The emulator may have written to an open image; reload it when the emulator quits.
+  useEffect(() => {
+    return window.imagineAPI.emulator.onDiskChanged(async (diskId) => {
+      try {
+        useWorkspaceStore.getState().updateDisk(await window.imagineAPI.disk.refresh(diskId))
+        useUIStore.getState().addToast({ intent: 'info', title: t('emuDiskReloaded') })
+      } catch { /* disk was ejected meanwhile */ }
+    })
+  }, [t])
+
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 1500)
     return () => clearTimeout(timer)
