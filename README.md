@@ -50,8 +50,8 @@ Supported formats include **C64** (`.d64`, `.d71`, `.d81`), **Amiga** (`.adf`), 
 
 ```bash
 # Clone the repository
-git clone https://github.com/dennisrapp/imagine.git
-cd imagine
+git clone https://github.com/it-dennis/imagine_app.git
+cd imagine_app
 
 # Install dependencies
 npm install
@@ -117,22 +117,40 @@ Register a plugin in `src/main/services/disk-engine/index.ts`. The core engine r
 
 ---
 
-## Contributing
+## Contributing & Collaboration
 
-1. Fork the repository and create a feature branch.
-2. Follow the existing code style (ESLint + Prettier + TypeScript strict mode).
-3. Add or update tests for any changed behaviour.
-4. Open a pull request with a clear description of the change.
+Contributions and collaboration are very welcome — whether code, new disk format plugins, translations, test images, documentation or ideas.
 
-Bug reports and feature requests are welcome via the issue tracker.
+1. Open an issue first for larger changes or new features, so we can align on the approach.
+2. Fork the repository and create a feature branch.
+3. Follow the existing code style (ESLint + Prettier + TypeScript strict mode).
+4. Add or update tests for any changed behaviour.
+5. Open a pull request with a clear description of the change.
+
+By submitting a contribution you agree that it is licensed under the same terms as the project, the **GNU GPL v3 or later** (see [License](#license)).
+
+Bug reports and feature requests are welcome via the [issue tracker](https://github.com/it-dennis/imagine_app/issues).
+
+---
+
+## Contact
+
+**Dennis Rapp**
+
+- E-mail: [info@dennisrapp.com](mailto:info@dennisrapp.com)
+- GitHub: [@it-dennis](https://github.com/it-dennis)
+
+For collaboration requests, questions or feedback feel free to get in touch by e-mail or open an issue.
 
 ---
 
 ## License
 
+Imagine is free software, licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). The full license text is in the [`LICENSE`](LICENSE) file.
+
 Copyright (C) 2026 Dennis Rapp
 
-This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License** as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 

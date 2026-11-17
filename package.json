@@ -2,6 +2,13 @@
   "name": "imagine",
   "version": "0.1.0",
   "description": "Disk Image Engine for retro systems (C64, Amiga, Atari ST, DOS and more)",
+  "license": "GPL-3.0-or-later",
+  "author": "Dennis Rapp <info@dennisrapp.com>",
+  "homepage": "https://github.com/it-dennis/imagine_app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/it-dennis/imagine_app.git"
+  },
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
