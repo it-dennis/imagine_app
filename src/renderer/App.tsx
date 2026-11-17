@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TitleBar } from './chrome/TitleBar'
-import { MenuBar } from './chrome/MenuBar'
 import { ToolBar } from './chrome/ToolBar'
 import { StatusBar } from './chrome/StatusBar'
 import { SplashScreen } from './screens/SplashScreen'
@@ -18,16 +16,18 @@ import { AboutScreen } from './screens/AboutScreen'
 import { useWorkspaceStore } from './state/workspace.store'
 import { useUIStore } from './state/ui.store'
 import { usePrefsStore } from './state/prefs.store'
+import { runMenuAction } from './lib/menu-actions'
 import { Check, Warning, Save } from './components/icons'
 
 const FULL_DIALOGS = ['newDisk', 'fileBrowser', 'iso', 'settings', 'about']
 
 export const App: React.FC = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [showSplash, setShowSplash] = useState(true)
   const { disks, activeDiskId } = useWorkspaceStore()
   const { activeDialog, closeDialog, toasts, removeToast } = useUIStore()
-  const { theme, accent, font } = usePrefsStore()
+  const { theme, accent, font, language } = usePrefsStore()
+  const [version, setVersion] = useState('')
   const activeDisk = disks.find((d) => d.id === activeDiskId) ?? null
 
   useEffect(() => {
@@ -44,8 +44,26 @@ export const App: React.FC = () => {
     })
   }, [t])
 
+  // Actions chosen in the native menu bar.
+  useEffect(() => window.imagineAPI.app.onMenuAction((action) => void runMenuAction(action, t)), [t])
+
+  // The native menu needs to know whether a disk is loaded and which language to use.
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1500)
+    void window.imagineAPI.app.setState({ hasDisk: !!activeDisk, language })
+  }, [activeDisk, language])
+
+  useEffect(() => { void i18n.changeLanguage(language) }, [language, i18n])
+  useEffect(() => { void window.imagineAPI.app.info().then((i) => setVersion(i.version)) }, [])
+
+  // The window title is the native frame's title now.
+  useEffect(() => {
+    document.title = activeDisk
+      ? `${t('appName')} — ${activeDisk.name}.${activeDisk.format.toUpperCase()}`
+      : `${t('appName')} — ${t('appTagline')}`
+  }, [activeDisk, t])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 600)
     return () => clearTimeout(timer)
   }, [])
 
@@ -69,8 +87,6 @@ export const App: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
-      <TitleBar title={activeDisk ? `${t('appName')} — ${activeDisk.name}.${activeDisk.format.toUpperCase()}` : `${t('appName')} — ${t('appTagline')}`} />
-      <MenuBar />
       <ToolBar hasDisk={!!activeDisk} />
 
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
@@ -79,13 +95,13 @@ export const App: React.FC = () => {
 
       <StatusBar
         left={activeDisk ? `${t('statReady')} · ${activeDisk.name}.${activeDisk.format.toUpperCase()}` : t('statReady')}
-        right="v0.1.0 · Electron · main"
+        right={version ? `v${version}` : ""}
       />
 
       {/* Dialog overlay */}
       {activeDialog && dialogContent && (
         <div
-          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
           onClick={(e) => { if (e.target === e.currentTarget && !FULL_DIALOGS.includes(activeDialog)) closeDialog() }}
         >
           {dialogContent}
@@ -99,8 +115,9 @@ export const App: React.FC = () => {
             <div
               key={toast.id}
               className={`im-toast im-toast--${toast.intent}`}
-              onClick={() => removeToast(toast.id)}
-              style={{ cursor: 'pointer' }}
+              // Clicking dismisses, but not while the user is selecting text to copy.
+              onClick={() => { if (!window.getSelection()?.toString()) removeToast(toast.id) }}
+              style={{ cursor: 'pointer', userSelect: 'text' }}
             >
               {toast.intent === 'success' && <Check size={18} color="var(--im-success)" />}
               {toast.intent === 'info' && <Save size={18} color="var(--im-info)" />}
@@ -110,6 +127,14 @@ export const App: React.FC = () => {
                 <div className="im-toast-title">{toast.title}</div>
                 {toast.description && <div className="im-toast-text">{toast.description}</div>}
               </div>
+              {toast.intent === 'danger' && (
+                <button
+                  className="im-btn im-btn--ghost"
+                  onClick={(e) => { e.stopPropagation(); void navigator.clipboard.writeText(`${toast.title}: ${toast.description ?? ''}`) }}
+                >
+                  {t('btnCopy')}
+                </button>
+              )}
             </div>
           ))}
         </div>

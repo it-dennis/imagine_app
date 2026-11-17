@@ -5,6 +5,13 @@ export type Accent = 'phosphor' | 'amber' | 'c64' | 'amiga' | 'neutral'
 export type Font = 'modern' | 'mono' | 'pixel'
 export type Language = 'de' | 'en'
 export type ActiveTab = 'files' | 'basic' | 'asm' | 'hex'
+/** App-level actions the native menu forwards to the renderer. */
+export type MenuAction =
+  | 'newDisk' | 'openDisk' | 'writeFile' | 'format' | 'eject' | 'iso'
+  | 'tabFiles' | 'tabBasic' | 'tabAsm' | 'tabHex' | 'toggleSidebar'
+  | 'emulatorDisk' | 'emulatorBlank' | 'detectEmulators'
+  | 'settings' | 'about'
+
 export type DialogId =
   | 'newDisk'
   | 'fileBrowser'

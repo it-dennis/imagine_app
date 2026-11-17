@@ -11,6 +11,11 @@ for (const plugin of [d64Plugin, stPlugin, imgPlugin, adfPlugin, isoPlugin, msaP
   registry.set(plugin.id, plugin)
 }
 
+/** Formats a new, blank disk can be created for (a plugin is registered and supports format()). */
+export function creatableFormats(): DiskFormat[] {
+  return [...registry.values()].filter((p) => p.capabilities.format && p.id !== 'iso').map((p) => p.id)
+}
+
 export function getPlugin(format: DiskFormat): DiskFormatPlugin {
   const plugin = registry.get(format)
   if (!plugin) throw new Error(`No disk format plugin registered for "${format}" yet.`)

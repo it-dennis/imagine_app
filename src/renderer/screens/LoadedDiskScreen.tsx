@@ -20,7 +20,7 @@ const CBM_6502_SYSTEMS: System[] = ['c64', 'vic20', 'plus4']
 export const LoadedDiskScreen: React.FC = () => {
   const { t } = useTranslation()
   const { disks, activeDiskId, setActiveDisk } = useWorkspaceStore()
-  const { activeTab, setActiveTab, openDialog } = useUIStore()
+  const { activeTab, setActiveTab, openDialog, sidebarVisible } = useUIStore()
   const disk = disks.find((d) => d.id === activeDiskId) ?? null
   const [selectedPath, setSelectedPath] = useState<string | null>(null)
 
@@ -30,7 +30,7 @@ export const LoadedDiskScreen: React.FC = () => {
 
   return (
     <div className="im-flex" style={{ flex: 1, minHeight: 0 }}>
-      <aside className="im-sidebar">
+      {sidebarVisible && <aside className="im-sidebar">
         <div className="im-sidebar-header">
           <span className="im-sidebar-title">{t('sbDiskettes')}</span>
           <button className="im-btn im-btn--icon im-btn--ghost" title={t('sbNewDisk')} onClick={() => openDialog('newDisk')}>
@@ -54,7 +54,7 @@ export const LoadedDiskScreen: React.FC = () => {
             </li>
           ))}
         </ul>
-      </aside>
+      </aside>}
 
       <div className="im-flex-col" style={{ flex: 1, minWidth: 0 }}>
         <div className="im-tabs">
@@ -99,7 +99,7 @@ export const LoadedDiskScreen: React.FC = () => {
                 {disk.files.length === 0 && (
                   <tr>
                     <td colSpan={3} className="im-text-3" style={{ padding: 'var(--im-s-5)', textAlign: 'center' }}>
-                      {t('sbEmpty')}
+                      {t('diskEmpty')}
                     </td>
                   </tr>
                 )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '../../state/ui.store'
 import { Disc, Close, Folder } from '../../components/icons'
@@ -12,6 +12,10 @@ export const IsoDialog: React.FC = () => {
   const [label, setLabel] = useState('')
   const [outputFolder, setOutputFolder] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    window.imagineAPI.fs.defaultFolder().then((f) => setOutputFolder((cur) => cur || f)).catch(() => {})
+  }, [])
 
   const pick = async (setter: (v: string) => void) => {
     try {
@@ -63,7 +67,7 @@ export const IsoDialog: React.FC = () => {
         <div className="im-field">
           <label className="im-label">{t('isoOutput')}</label>
           <div className="im-flex im-gap-2">
-            <input className="im-input" value={outputFolder} onChange={(e) => setOutputFolder(e.target.value)} placeholder="~/Documents/Imagine" />
+            <input className="im-input" value={outputFolder} onChange={(e) => setOutputFolder(e.target.value)}  />
             <button className="im-btn" onClick={() => pick(setOutputFolder)}><Folder size={16} /></button>
           </div>
         </div>

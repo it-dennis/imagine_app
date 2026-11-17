@@ -49,7 +49,7 @@ export const SettingsScreen: React.FC = () => {
     <div className="im-dialog" style={{ minWidth: 640, maxWidth: 760 }}>
       <div className="im-dialog-header">
         <span className="im-dialog-icon"><Settings size={18} /></span>
-        <span className="im-dialog-title" style={{ flex: 1 }}>{t('miPreferences')}</span>
+        <span className="im-dialog-title" style={{ flex: 1 }}>{t('miPreferences').replace(/…$/, '')}</span>
         <button className="im-btn im-btn--icon im-btn--ghost" onClick={closeDialog}><Close size={16} /></button>
       </div>
 

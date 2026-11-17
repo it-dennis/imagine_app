@@ -15,6 +15,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "test": "vitest run",
+    "test:e2e": "npm run build && vitest run --config vitest.e2e.config.ts",
     "package": "npm run build && electron-builder"
   },
   "build": {
@@ -49,11 +50,15 @@
     "electron": "^28.3.2",
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.2.0",
+    "playwright-core": "^1.65.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
     "vitest": "^1.6.1"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/vt323": "^5.3.0",
     "@monaco-editor/react": "^4.6.0",
     "i18next": "^23.11.3",
     "react": "^18.3.1",

@@ -1,7 +1,9 @@
 import { ipcMain } from 'electron'
 import { randomUUID } from 'crypto'
+import { app } from 'electron'
 import { readFile, writeFile as writeFileFs, stat } from 'fs/promises'
-import { getPlugin, formatFromPath, defaultSystemForFormat } from '../services/disk-engine'
+import { getPlugin, formatFromPath, defaultSystemForFormat, creatableFormats } from '../services/disk-engine'
+import { defaultFolder, resolveFolder, sanitizeFileName, writeNewFile } from '../services/disk-files'
 import { registerOpenDisk, getOpenDisk, removeOpenDisk } from '../services/disk-registry'
 import type { DiskFile, DiskFormat, System, VirtualDisk } from '../../shared/types'
 
@@ -33,7 +35,13 @@ async function buildVirtualDisk(
   }
 }
 
+/** IMAGINE_DOCUMENTS_DIR lets tests keep new images out of the real Documents folder. */
+export const documentsDir = (): string => process.env['IMAGINE_DOCUMENTS_DIR'] ?? app.getPath('documents')
+
 export function registerDiskHandlers(): void {
+  ipcMain.handle('disk:formats', () => creatableFormats())
+  ipcMain.handle('fs:defaultFolder', () => defaultFolder(documentsDir()))
+
   ipcMain.handle('disk:open', async (_e, path: string) => {
     const format = formatFromPath(path)
     const system = defaultSystemForFormat(format)
@@ -50,9 +58,8 @@ export function registerDiskHandlers(): void {
         throw new Error(`Format "${opts.format}" does not support creating new disks yet.`)
       }
       const buffer = await plugin.format({ label: opts.label })
-      const fileName = `${opts.label.trim().toLowerCase() || 'untitled'}.${opts.format}`
-      const path = `${opts.folder.replace(/[\\/]+$/, '')}/${fileName}`
-      await writeFileFs(path, buffer)
+      const baseName = sanitizeFileName(opts.label.trim().toLowerCase())
+      const path = await writeNewFile(resolveFolder(opts.folder, documentsDir()), baseName, opts.format, buffer)
       const id = randomUUID()
       registerOpenDisk(id, { path, format: opts.format, system: opts.system })
       return buildVirtualDisk(id, path, opts.format, opts.system)

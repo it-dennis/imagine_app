@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useWorkspaceStore } from '../../state/workspace.store'
 import { useUIStore } from '../../state/ui.store'
@@ -52,14 +52,23 @@ export const NewDiskWizard: React.FC = () => {
   const [system, setSystem] = useState<System>('c64')
   const [format, setFormat] = useState<DiskFormat>('d64')
   const [label, setLabel] = useState('')
-  const [folder, setFolder] = useState('~/Documents/Imagine')
+  const [folder, setFolder] = useState('')
   const [busy, setBusy] = useState(false)
+  // Formats the engine can really create; the wizard only offers these (no dead d71/d81/dsk options).
+  const [creatable, setCreatable] = useState<DiskFormat[] | null>(null)
 
-  const availableFormats = FORMATS_BY_SYSTEM[system]
+  useEffect(() => {
+    window.imagineAPI.fs.defaultFolder().then((f) => setFolder((cur) => cur || f)).catch(() => {})
+    window.imagineAPI.disk.formats().then(setCreatable).catch(() => setCreatable(['d64', 'st', 'msa', 'adf', 'img']))
+  }, [])
+
+  const formatsFor = (id: System) => FORMATS_BY_SYSTEM[id].filter((f) => !creatable || creatable.includes(f))
+  const systems = SYSTEMS.filter((s) => formatsFor(s.id).length > 0)
+  const availableFormats = formatsFor(system)
 
   const pickSystem = (id: System) => {
     setSystem(id)
-    setFormat(FORMATS_BY_SYSTEM[id][0])
+    setFormat(formatsFor(id)[0])
   }
 
   const pickFolder = async () => {
@@ -71,14 +80,14 @@ export const NewDiskWizard: React.FC = () => {
     }
   }
 
-  const canContinue = step === 0 ? !!system : step === 1 ? !!format : label.trim().length > 0
+  const canContinue = step === 0 ? !!system : step === 1 ? !!format : label.trim().length > 0 && folder.trim().length > 0
 
   const finish = async () => {
     setBusy(true)
     try {
       const disk = await window.imagineAPI.disk.create({ system, format, label: label.trim() || 'UNTITLED', folder })
       addDisk(disk)
-      addToast({ intent: 'success', title: t('toastDiskCreated'), description: disk.name })
+      addToast({ intent: 'success', title: t('toastDiskCreated'), description: disk.path })
       closeDialog()
     } catch (err) {
       addToast({ intent: 'danger', title: t('toastErrorTitle'), description: err instanceof Error ? err.message : String(err) })
@@ -108,7 +117,7 @@ export const NewDiskWizard: React.FC = () => {
           <>
             <p className="im-text-2" style={{ margin: 0, fontSize: 'var(--im-fs-sm)' }}>{t('wizSystemHint')}</p>
             <div className="im-flex im-gap-2" style={{ flexWrap: 'wrap' }}>
-              {SYSTEMS.map((s) => (
+              {systems.map((s) => (
                 <span
                   key={s.id}
                   className={`im-badge ${s.badge}`}

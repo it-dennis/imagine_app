@@ -26,7 +26,8 @@ export const useUIStore = create<UIState>((set) => ({
   addToast: (toast) => {
     const id = Math.random().toString(36).slice(2)
     set((s) => ({ toasts: [...s.toasts, { ...toast, id }] }))
-    const duration = toast.duration ?? 5000
+    // Errors stay until dismissed so their text can be read and copied.
+    const duration = toast.duration ?? (toast.intent === 'danger' ? 0 : 5000)
     if (duration > 0) setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), duration)
   },
   removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),

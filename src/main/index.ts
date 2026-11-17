@@ -5,6 +5,10 @@ import { registerDiskHandlers } from './ipc/disk'
 import { registerPrefsHandlers } from './ipc/prefs'
 import { registerIsoHandlers } from './ipc/iso'
 import { registerEmulatorHandlers } from './ipc/emulator'
+import { registerAppHandlers } from './ipc/app'
+
+// Lets automated tests run against a throw-away profile instead of the user's real one.
+if (process.env['IMAGINE_USER_DATA']) app.setPath('userData', process.env['IMAGINE_USER_DATA'])
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -12,8 +16,6 @@ function createWindow(): void {
     height: 820,
     minWidth: 900,
     minHeight: 600,
-    frame: false,
-    titleBarStyle: 'hiddenInset',
     backgroundColor: '#15141a',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -35,12 +37,13 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   registerFsHandlers()
   registerDiskHandlers()
   registerPrefsHandlers()
   registerIsoHandlers()
   registerEmulatorHandlers()
+  await registerAppHandlers()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

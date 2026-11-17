@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('imagineAPI', {
     delete: (diskId: string) => ipcRenderer.invoke('disk:delete', diskId),
     eject:  (diskId: string) => ipcRenderer.invoke('disk:eject', diskId),
     refresh: (diskId: string) => ipcRenderer.invoke('disk:refresh', diskId),
+    formats: () => ipcRenderer.invoke('disk:formats'),
   },
   iso: {
     create: (opts: unknown) => ipcRenderer.invoke('iso:create', opts),
@@ -18,6 +19,16 @@ contextBridge.exposeInMainWorld('imagineAPI', {
     pickFile:   (filter?: string[]) => ipcRenderer.invoke('fs:pickFile', filter),
     pickFolder: () => ipcRenderer.invoke('fs:pickFolder'),
     readFile:   (path: string) => ipcRenderer.invoke('fs:readFile', path),
+    defaultFolder: () => ipcRenderer.invoke('fs:defaultFolder'),
+  },
+  app: {
+    setState: (state: unknown) => ipcRenderer.invoke('app:setState', state),
+    info: () => ipcRenderer.invoke('app:info'),
+    onMenuAction: (cb: (action: string) => void) => {
+      const handler = (_e: unknown, action: string) => cb(action)
+      ipcRenderer.on('menu:action', handler)
+      return () => ipcRenderer.removeListener('menu:action', handler)
+    },
   },
   emulator: {
     launch: (opts: unknown) => ipcRenderer.invoke('emu:launch', opts),
