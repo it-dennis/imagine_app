@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 type Bag = Record<string, unknown>
 
-function stubEnvironment(mainPrefs: Bag) {
+function stubEnvironment(mainPrefs: Bag, detected: Bag = {}) {
   const ls = new Map<string, string>()
   const state = { ...mainPrefs }
   const set = vi.fn(async (patch: Bag) => Object.assign(state, patch))
@@ -10,7 +10,7 @@ function stubEnvironment(mainPrefs: Bag) {
     getItem: (k: string) => ls.get(k) ?? null,
     setItem: (k: string, v: string) => void ls.set(k, v),
   })
-  vi.stubGlobal('window', { imagineAPI: { prefs: { get: async () => ({ ...state }), set } } })
+  vi.stubGlobal('window', { imagineAPI: { prefs: { get: async () => ({ ...state }), set }, emulator: { detect: async () => detected } } })
   return { ls, state, set }
 }
 
@@ -55,5 +55,24 @@ describe('prefs store', () => {
     const store = await freshStore()
     await expect(store.getState().hydrate()).resolves.toBeUndefined()
     expect(() => store.getState().setFont('mono')).not.toThrow()
+  })
+
+  it('autodetect fills empty emulator paths but keeps manual ones unless overwriting', async () => {
+    const env = stubEnvironment({}, { vicePath: 'C:/vice/x64sc.exe', hatariPath: 'C:/hatari/hatari.exe' })
+    env.ls.set('im.vicePath', '"D:/mine/x64sc.exe"')
+    const store = await freshStore()
+    await store.getState().autodetect()
+    expect(store.getState().vicePath).toBe('D:/mine/x64sc.exe')
+    expect(store.getState().hatariPath).toBe('C:/hatari/hatari.exe')
+    expect(env.state.hatariPath).toBe('C:/hatari/hatari.exe')
+    await store.getState().autodetect(true)
+    expect(store.getState().vicePath).toBe('C:/vice/x64sc.exe')
+  })
+
+  it('autodetect survives a failing bridge', async () => {
+    stubEnvironment({})
+    vi.stubGlobal('window', {})
+    const store = await freshStore()
+    await expect(store.getState().autodetect()).resolves.toEqual({})
   })
 })

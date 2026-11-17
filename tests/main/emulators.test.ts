@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { mkdtemp, writeFile, rm, readFile } from 'fs/promises'
+import { mkdtemp, mkdir, writeFile, rm, readFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import { buildLaunchCommand, emulatorFor, launchEmulator } from '../../src/main/services/emulators'
+import { buildLaunchCommand, detectEmulators, emulatorFor, launchEmulator } from '../../src/main/services/emulators'
 
 const prefs = { vicePath: join('C:', 'vice', 'bin', 'x64sc.exe'), hatariPath: join('C:', 'hatari', 'hatari.exe') }
 
@@ -66,6 +66,62 @@ describe('launchEmulator', () => {
       expect(JSON.parse(await readFile(out, 'utf-8'))).toEqual(['-autostart', 'my disk.d64'])
     } finally {
       await rm(dir, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('detectEmulators', () => {
+  async function tree(files: string[]) {
+    const root = await mkdtemp(join(tmpdir(), 'imagine-detect-'))
+    for (const f of files) {
+      await mkdir(join(root, ...f.split('/').slice(0, -1)), { recursive: true })
+      await writeFile(join(root, ...f.split('/')), '')
+    }
+    return root
+  }
+
+  it('finds VICE in a bin folder and Hatari next to its folder name, preferring the newest version', async () => {
+    const root = await tree([
+      'GTK3VICE-3.7-win64/bin/x64sc.exe',
+      'GTK3VICE-3.9-win64/bin/x64sc.exe',
+      'hatari-2.5/hatari.exe',
+    ])
+    try {
+      const found = await detectEmulators({ platform: 'win32', env: {}, roots: [root] })
+      expect(found.vicePath).toBe(join(root, 'GTK3VICE-3.9-win64', 'bin', 'x64sc.exe'))
+      expect(found.hatariPath).toBe(join(root, 'hatari-2.5', 'hatari.exe'))
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('finds binaries directly on the PATH', async () => {
+    const root = await tree(['tools/x64sc', 'tools/hatari'])
+    try {
+      const found = await detectEmulators({ platform: 'linux', env: { PATH: join(root, 'tools') }, roots: [] })
+      expect(found).toEqual({ vicePath: join(root, 'tools', 'x64sc'), hatariPath: join(root, 'tools', 'hatari') })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('finds macOS app bundles', async () => {
+    const root = await tree(['Hatari.app/Contents/MacOS/hatari'])
+    try {
+      const found = await detectEmulators({ platform: 'darwin', env: {}, roots: [root] })
+      // Windows/macOS file systems are case-insensitive, so the bundle may be reported as hatari.app.
+      expect(found.hatariPath?.toLowerCase()).toBe(join(root, 'Hatari.app', 'Contents', 'MacOS', 'hatari').toLowerCase())
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('returns an empty result when nothing is installed', async () => {
+    const root = await tree(['unrelated/readme.txt'])
+    try {
+      expect(await detectEmulators({ platform: 'win32', env: {}, roots: [root, join(root, 'missing')] })).toEqual({})
+    } finally {
+      await rm(root, { recursive: true, force: true })
     }
   })
 })

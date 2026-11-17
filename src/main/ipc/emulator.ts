@@ -1,11 +1,13 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { stat } from 'fs/promises'
 import { getOpenDisk } from '../services/disk-registry'
-import { buildLaunchCommand, launchEmulator } from '../services/emulators'
+import { buildLaunchCommand, detectEmulators, launchEmulator } from '../services/emulators'
 import { readPrefs } from './prefs'
 import type { System } from '../../shared/types'
 
 export function registerEmulatorHandlers(): void {
+  ipcMain.handle('emu:detect', () => detectEmulators())
+
   /** Launches the emulator for an open disk, or a blank session for `system` when no disk is given. */
   ipcMain.handle(
     'emu:launch',

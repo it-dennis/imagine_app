@@ -22,6 +22,14 @@ export const SettingsScreen: React.FC = () => {
   const closeDialog = useUIStore((s) => s.closeDialog)
   const { theme, accent, font, language, vicePath, hatariPath, setTheme, setAccent, setFont, setLanguage, setVicePath, setHatariPath } = usePrefsStore()
   const [category, setCategory] = useState<Category>('general')
+  const autodetect = usePrefsStore((s) => s.autodetect)
+  const [detectMsg, setDetectMsg] = useState('')
+
+  const runDetect = async () => {
+    const found = await autodetect(true)
+    const names = [found.vicePath && 'VICE', found.hatariPath && 'Hatari'].filter(Boolean)
+    setDetectMsg(names.length ? t('emuDetected', { names: names.join(', ') }) : t('emuNotDetected'))
+  }
 
   const changeLanguage = (l: Language) => {
     setLanguage(l)
@@ -114,6 +122,10 @@ export const SettingsScreen: React.FC = () => {
                   <input className="im-input" value={hatariPath} onChange={(e) => setHatariPath(e.target.value)} placeholder="/usr/bin/hatari" />
                   <button className="im-btn" onClick={() => pickPath(setHatariPath)}><Folder size={16} /></button>
                 </div>
+              </div>
+              <div className="im-flex im-gap-2" style={{ alignItems: 'center' }}>
+                <button className="im-btn" onClick={runDetect}>{t('emuDetect')}</button>
+                {detectMsg && <span className="im-text-3" style={{ fontSize: 'var(--im-fs-sm)' }}>{detectMsg}</span>}
               </div>
             </>
           )}

@@ -18,6 +18,8 @@ interface PrefsState extends PersistedPrefs {
   setVicePath: (p: string) => void
   setHatariPath: (p: string) => void
   hydrate: () => Promise<void>
+  /** Searches for installed emulators; fills empty paths, or replaces existing ones with `overwrite`. */
+  autodetect: (overwrite?: boolean) => Promise<{ vicePath?: string; hatariPath?: string }>
 }
 
 const KEYS: (keyof PersistedPrefs)[] = ['theme', 'accent', 'font', 'language', 'vicePath', 'hatariPath']
@@ -55,6 +57,18 @@ export const usePrefsStore = create<PrefsState>((set, get) => ({
   setLanguage: (language) => { persist('language', language); set({ language }) },
   setVicePath: (vicePath) => { persist('vicePath', vicePath); set({ vicePath }) },
   setHatariPath: (hatariPath) => { persist('hatariPath', hatariPath); set({ hatariPath }) },
+
+  autodetect: async (overwrite = false) => {
+    try {
+      const found = await window.imagineAPI.emulator.detect()
+      const { vicePath, hatariPath, setVicePath, setHatariPath } = get()
+      if (found.vicePath && (overwrite || !vicePath)) setVicePath(found.vicePath)
+      if (found.hatariPath && (overwrite || !hatariPath)) setHatariPath(found.hatariPath)
+      return found
+    } catch {
+      return {}
+    }
+  },
 
   hydrate: async () => {
     try {

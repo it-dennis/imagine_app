@@ -31,7 +31,7 @@ export const App: React.FC = () => {
   const activeDisk = disks.find((d) => d.id === activeDiskId) ?? null
 
   useEffect(() => {
-    void usePrefsStore.getState().hydrate()
+    void usePrefsStore.getState().hydrate().then(() => usePrefsStore.getState().autodetect())
   }, [])
 
   // The emulator may have written to an open image; reload it when the emulator quits.

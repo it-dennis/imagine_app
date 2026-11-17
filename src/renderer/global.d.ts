@@ -35,6 +35,7 @@ interface ImagineAPI {
   }
   emulator: {
     launch: (opts: { diskId?: string; system?: System; hasFiles?: boolean }) => Promise<{ kind: 'vice' | 'hatari' }>
+    detect: () => Promise<{ vicePath?: string; hatariPath?: string }>
     onDiskChanged: (cb: (diskId: string) => void) => () => void
   }
   prefs: {

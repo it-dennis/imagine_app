@@ -1,7 +1,8 @@
 import { spawn } from 'child_process'
-import { access } from 'fs/promises'
+import { access, readdir } from 'fs/promises'
 import { constants } from 'fs'
-import { dirname, extname, join } from 'path'
+import { homedir } from 'os'
+import { delimiter, dirname, extname, join } from 'path'
 import type { System } from '../../shared/types'
 
 export type EmulatorKind = 'vice' | 'hatari'
@@ -76,4 +77,72 @@ export async function launchEmulator(cmd: LaunchCommand, onExit?: () => void): P
       resolve()
     })
   })
+}
+
+export interface DetectOptions {
+  platform?: NodeJS.Platform
+  env?: NodeJS.ProcessEnv
+  home?: string
+  /** Replaces the default install locations (the PATH is always searched too). Used by tests. */
+  roots?: string[]
+}
+
+const exists = (p: string) => access(p, constants.F_OK).then(() => true, () => false)
+
+function defaultRoots(platform: NodeJS.Platform, env: NodeJS.ProcessEnv, home: string): string[] {
+  const portable = [join(home, 'Downloads'), join(home, 'Desktop'), join(home, 'Documents')]
+  if (platform === 'win32') {
+    const drive = env.SystemDrive ?? 'C:'
+    return [
+      env.ProgramFiles ?? `${drive}\\Program Files`,
+      env['ProgramFiles(x86)'] ?? `${drive}\\Program Files (x86)`,
+      env.LOCALAPPDATA ? join(env.LOCALAPPDATA, 'Programs') : '',
+      `${drive}\\`,
+      `${drive}\\Tools`,
+      `${drive}\\Emulators`,
+      ...portable,
+    ].filter(Boolean)
+  }
+  if (platform === 'darwin') return ['/Applications', '/opt/homebrew/bin', '/usr/local/bin', ...portable]
+  return ['/usr/bin', '/usr/games', '/usr/local/bin', '/usr/local/games', '/opt', ...portable]
+}
+
+/** Candidate executable locations inside one directory (flat, in bin/, or in a macOS app bundle). */
+function candidates(dir: string, binary: string, platform: NodeJS.Platform): string[] {
+  const exe = platform === 'win32' ? `${binary}.exe` : binary
+  const list = [join(dir, exe), join(dir, 'bin', exe)]
+  if (platform === 'darwin') {
+    list.push(join(dir, `${binary}.app`, 'Contents', 'MacOS', binary), join(dir, 'Contents', 'MacOS', binary))
+  }
+  return list
+}
+
+async function findIn(roots: string[], binary: string, folder: RegExp, platform: NodeJS.Platform): Promise<string | undefined> {
+  for (const root of roots) {
+    const dirs = [root]
+    try {
+      const entries = await readdir(root, { withFileTypes: true })
+      // Newest-looking version first (e.g. GTK3VICE-3.9 before GTK3VICE-3.7).
+      const matches = entries.filter((e) => e.isDirectory() && folder.test(e.name)).map((e) => join(root, e.name))
+      dirs.push(...matches.sort().reverse())
+    } catch { /* root does not exist */ }
+    for (const dir of dirs) {
+      for (const c of candidates(dir, binary, platform)) if (await exists(c)) return c
+    }
+  }
+  return undefined
+}
+
+/** Looks for VICE (x64sc) and Hatari on the PATH and in the usual install / unpack locations. */
+export async function detectEmulators(opts: DetectOptions = {}): Promise<EmulatorPrefs> {
+  const platform = opts.platform ?? process.platform
+  const env = opts.env ?? process.env
+  const pathDirs = (env.PATH ?? env.Path ?? '').split(delimiter).filter(Boolean)
+  const roots = [...pathDirs, ...(opts.roots ?? defaultRoots(platform, env, opts.home ?? homedir()))]
+  const found: EmulatorPrefs = {}
+  const vicePath = await findIn(roots, 'x64sc', /vice/i, platform)
+  const hatariPath = await findIn(roots, 'hatari', /hatari/i, platform)
+  if (vicePath) found.vicePath = vicePath
+  if (hatariPath) found.hatariPath = hatariPath
+  return found
 }

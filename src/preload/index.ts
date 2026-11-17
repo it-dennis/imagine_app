@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('imagineAPI', {
   },
   emulator: {
     launch: (opts: unknown) => ipcRenderer.invoke('emu:launch', opts),
+    detect: () => ipcRenderer.invoke('emu:detect'),
     onDiskChanged: (cb: (diskId: string) => void) => {
       const handler = (_e: unknown, diskId: string) => cb(diskId)
       ipcRenderer.on('emu:diskChanged', handler)
