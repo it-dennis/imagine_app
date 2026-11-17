@@ -4,7 +4,8 @@ contextBridge.exposeInMainWorld('imagineAPI', {
   disk: {
     create: (opts: unknown) => ipcRenderer.invoke('disk:create', opts),
     open:   (path: string) => ipcRenderer.invoke('disk:open', path),
-    write:  (diskId: string, file: unknown, target: unknown) => ipcRenderer.invoke('disk:write', diskId, file, target),
+    write:  (diskId: string, sourcePath: string, target: unknown) => ipcRenderer.invoke('disk:write', diskId, sourcePath, target),
+    readFile: (diskId: string, path: string) => ipcRenderer.invoke('disk:readFile', diskId, path),
     format: (diskId: string) => ipcRenderer.invoke('disk:format', diskId),
     delete: (diskId: string) => ipcRenderer.invoke('disk:delete', diskId),
     eject:  (diskId: string) => ipcRenderer.invoke('disk:eject', diskId),

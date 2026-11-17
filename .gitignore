@@ -60,14 +60,14 @@ Desktop.ini
 uploads/
 handoff/
 
-# Claude Design output
-design-canvas.jsx
-design-system/
-screens/
-deck-stage.js
-tweaks-panel.jsx
-Imagine.html
-Imagine-Overview.html
+# Claude Design output (raw exports at repo root, not the app's src/renderer/screens)
+/design-canvas.jsx
+/design-system/
+/screens/
+/deck-stage.js
+/tweaks-panel.jsx
+/Imagine.html
+/Imagine-Overview.html
 
 
 
@@ -85,3 +85,6 @@ coverage/
 # Temporary files
 *.tmp
 *.bak
+
+# Archives
+Archiv/

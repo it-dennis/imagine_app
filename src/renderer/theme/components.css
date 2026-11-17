@@ -321,6 +321,49 @@
   padding: var(--im-s-4);
 }
 
+/* Clickable action card (empty state, wizard tiles) */
+.im-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--im-s-3);
+  padding: var(--im-s-5);
+  width: 220px;
+  background: var(--im-bg-2);
+  border: 1px solid var(--im-line);
+  border-radius: var(--im-r-lg);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: border-color var(--im-dur-fast) var(--im-ease),
+              transform var(--im-dur-fast) var(--im-ease),
+              background var(--im-dur-fast) var(--im-ease);
+}
+.im-action-card:hover {
+  border-color: var(--im-accent);
+  background: var(--im-bg-3);
+  transform: translateY(-2px);
+}
+.im-action-card-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--im-r-md);
+  background: var(--im-accent-soft);
+  color: var(--im-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.im-action-card-title {
+  font-size: var(--im-fs-md);
+  font-weight: 600;
+  color: var(--im-text-1);
+}
+.im-action-card-desc {
+  font-size: var(--im-fs-xs);
+  color: var(--im-text-3);
+}
+
 /* ---------- BADGES / CHIPS ---------- */
 .im-badge {
   display: inline-flex;
@@ -446,6 +489,17 @@
   background: linear-gradient(90deg, var(--im-accent-strong), var(--im-accent));
   border-radius: 2px;
   transition: width var(--im-dur-base) var(--im-ease);
+}
+
+/* Indeterminate variant (splash screen, unknown-duration operations) */
+.im-progress-bar.im-splash-bar {
+  position: absolute;
+  width: 40%;
+  animation: im-splash-sweep 1.1s ease-in-out infinite;
+}
+@keyframes im-splash-sweep {
+  0%   { left: -40%; }
+  100% { left: 100%; }
 }
 
 /* ---------- TABS ---------- */
@@ -649,6 +703,24 @@
 .tok-fn    { color: var(--im-msx-cyan); }
 .tok-op    { color: var(--im-text-2); }
 .tok-addr  { color: var(--im-dos-amber); }
+
+/* ---------- HEX VIEWER ---------- */
+.im-hexview {
+  font-family: var(--im-font-mono);
+  font-size: var(--im-fs-xs);
+  padding: var(--im-s-3) var(--im-s-4);
+}
+.im-hex-row {
+  display: flex;
+  gap: var(--im-s-4);
+  padding: 1px 0;
+  white-space: pre;
+  border-radius: var(--im-r-xs);
+}
+.im-hex-row:hover { background: var(--im-bg-2); }
+.im-hex-offset { color: var(--im-text-4); width: 72px; flex-shrink: 0; }
+.im-hex-bytes { color: var(--im-text-2); flex-shrink: 0; }
+.im-hex-ascii { color: var(--im-text-3); }
 
 /* ---------- ICON SIZING ---------- */
 .im-icon-14 { width: 14px; height: 14px; }

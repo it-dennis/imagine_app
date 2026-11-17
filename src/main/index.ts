@@ -1,5 +1,9 @@
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
+import { registerFsHandlers } from './ipc/fs'
+import { registerDiskHandlers } from './ipc/disk'
+import { registerPrefsHandlers } from './ipc/prefs'
+import { registerIsoHandlers } from './ipc/iso'
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -31,6 +35,10 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  registerFsHandlers()
+  registerDiskHandlers()
+  registerPrefsHandlers()
+  registerIsoHandlers()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
