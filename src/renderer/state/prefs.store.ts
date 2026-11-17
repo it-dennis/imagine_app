@@ -1,33 +1,71 @@
 import { create } from 'zustand'
 import type { Theme, Accent, Font, Language } from '../../shared/types'
 
-interface PrefsState {
+interface PersistedPrefs {
   theme: Theme
   accent: Accent
   font: Font
   language: Language
   vicePath: string
+}
+
+interface PrefsState extends PersistedPrefs {
   setTheme: (t: Theme) => void
   setAccent: (a: Accent) => void
   setFont: (f: Font) => void
   setLanguage: (l: Language) => void
   setVicePath: (p: string) => void
+  hydrate: () => Promise<void>
 }
 
+const KEYS: (keyof PersistedPrefs)[] = ['theme', 'accent', 'font', 'language', 'vicePath']
+
+const DEFAULTS: PersistedPrefs = {
+  theme: 'dark',
+  accent: 'phosphor',
+  font: 'modern',
+  language: 'de',
+  vicePath: '',
+}
+
+// localStorage is only a synchronous first-paint cache; prefs.json in userData (via IPC) is the source of truth.
 const load = <T>(key: string, def: T): T => {
   try { return JSON.parse(localStorage.getItem(key) ?? 'null') ?? def } catch { return def }
 }
-const save = (key: string, val: unknown) => { try { localStorage.setItem(key, JSON.stringify(val)) } catch {} }
+const cache = (key: string, val: unknown) => { try { localStorage.setItem(key, JSON.stringify(val)) } catch {} }
 
-export const usePrefsStore = create<PrefsState>((set) => ({
-  theme:    load('im.theme',    'dark' as Theme),
-  accent:   load('im.accent',   'phosphor' as Accent),
-  font:     load('im.font',     'modern' as Font),
-  language: load('im.language', 'de' as Language),
-  vicePath: load('im.vicePath', ''),
-  setTheme:    (theme)    => { save('im.theme',    theme);    set({ theme }) },
-  setAccent:   (accent)   => { save('im.accent',   accent);   set({ accent }) },
-  setFont:     (font)     => { save('im.font',     font);     set({ font }) },
-  setLanguage: (language) => { save('im.language', language); set({ language }) },
-  setVicePath: (vicePath) => { save('im.vicePath', vicePath); set({ vicePath }) },
+const persist = <K extends keyof PersistedPrefs>(key: K, val: PersistedPrefs[K]) => {
+  cache(`im.${key}`, val)
+  window.imagineAPI?.prefs.set({ [key]: val }).catch(() => {})
+}
+
+export const usePrefsStore = create<PrefsState>((set, get) => ({
+  theme:    load('im.theme',    DEFAULTS.theme),
+  accent:   load('im.accent',   DEFAULTS.accent),
+  font:     load('im.font',     DEFAULTS.font),
+  language: load('im.language', DEFAULTS.language),
+  vicePath: load('im.vicePath', DEFAULTS.vicePath),
+  setTheme:    (theme)    => { persist('theme', theme);       set({ theme }) },
+  setAccent:   (accent)   => { persist('accent', accent);     set({ accent }) },
+  setFont:     (font)     => { persist('font', font);         set({ font }) },
+  setLanguage: (language) => { persist('language', language); set({ language }) },
+  setVicePath: (vicePath) => { persist('vicePath', vicePath); set({ vicePath }) },
+
+  hydrate: async () => {
+    try {
+      const stored = await window.imagineAPI.prefs.get()
+      const known = KEYS.filter((k) => stored[k] !== undefined)
+      if (known.length === 0) {
+        // First run with the unified store: migrate whatever localStorage held into prefs.json.
+        const current = get()
+        await window.imagineAPI.prefs.set(Object.fromEntries(KEYS.map((k) => [k, current[k]])))
+        return
+      }
+      const patch = Object.fromEntries(known.map((k) => [k, stored[k]])) as Partial<PersistedPrefs>
+      for (const k of known) cache(`im.${k}`, stored[k])
+      set(patch)
+    } catch {
+      // IPC unavailable (e.g. plain browser dev): keep localStorage values.
+    }
+  },
 }))

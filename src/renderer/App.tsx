@@ -31,6 +31,10 @@ export const App: React.FC = () => {
   const activeDisk = disks.find((d) => d.id === activeDiskId) ?? null
 
   useEffect(() => {
+    void usePrefsStore.getState().hydrate()
+  }, [])
+
+  useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 1500)
     return () => clearTimeout(timer)
   }, [])

@@ -14,15 +14,32 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
+    "test": "vitest run",
     "package": "npm run build && electron-builder"
   },
   "build": {
     "appId": "dev.dennisrapp.imagine",
     "productName": "Imagine",
-    "directories": { "output": "dist" },
-    "linux": { "target": ["AppImage", "deb"] },
-    "win":   { "target": ["nsis", "portable"] },
-    "mac":   { "target": ["dmg"] }
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    }
   },
   "devDependencies": {
     "@types/node": "^20.12.0",
@@ -33,7 +50,8 @@
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.2.0",
     "typescript": "^5.4.5",
-    "vite": "^5.2.11"
+    "vite": "^5.2.11",
+    "vitest": "^1.6.1"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
