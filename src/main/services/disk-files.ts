@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, rename, rm, writeFile } from 'fs/promises'
 import { homedir } from 'os'
 import { join } from 'path'
 
@@ -44,4 +44,24 @@ export async function writeNewFile(folder: string, baseName: string, ext: string
     }
   }
   throw new Error(`Too many files named "${baseName}.${ext}" in ${folder}.`)
+}
+
+/**
+ * Replaces a file by writing a temp file next to it and renaming over it, so a failed or interrupted
+ * save never leaves a half-written image. Windows refuses the rename while another program (typically
+ * an emulator) has the image open; that case gets a readable message instead of a bare EPERM.
+ */
+export async function writeFileAtomic(path: string, data: Buffer): Promise<void> {
+  const temp = `${path}.imagine-tmp`
+  try {
+    await writeFile(temp, data)
+    await rename(temp, path)
+  } catch (err) {
+    await rm(temp, { force: true })
+    const code = (err as NodeJS.ErrnoException).code
+    if (code === 'EPERM' || code === 'EBUSY' || code === 'EACCES') {
+      throw new Error(`The disk image is in use by another program (an emulator?). Close it and try again: ${path}`)
+    }
+    throw err
+  }
 }

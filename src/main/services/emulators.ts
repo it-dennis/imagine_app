@@ -18,6 +18,8 @@ export interface LaunchRequest {
   diskPath?: string
   /** Whether the image holds at least one file (autostart needs one). */
   hasFiles?: boolean
+  /** Name of the file to run; without it VICE starts the first program on the disk. */
+  program?: string
 }
 
 export interface LaunchCommand {
@@ -31,12 +33,23 @@ const VICE_BINARY: Partial<Record<System, string>> = {
   c64: 'x64sc',
   vic20: 'xvic',
   plus4: 'xplus4',
+  c128: 'x128',
 }
 
 export function emulatorFor(system: System): EmulatorKind {
   if (system in VICE_BINARY) return 'vice'
   if (system === 'atariST') return 'hatari'
   throw new Error(`No emulator integration for this system yet (${system}).`)
+}
+
+/**
+ * "image:name" makes VICE load that file instead of the first one. VICE converts the name from ASCII, where
+ * capitals count as shifted PETSCII letters, so names are passed in lowercase (checked against a real ROM run).
+ * Names with other characters cannot be passed reliably; then the first program starts.
+ */
+export function autostartTarget(diskPath: string, program?: string): string {
+  if (program && /^[A-Za-z0-9 _.+-]{1,16}$/.test(program)) return `${diskPath}:${program.toLowerCase()}`
+  return diskPath
 }
 
 export function buildLaunchCommand(req: LaunchRequest, prefs: EmulatorPrefs): LaunchCommand {
@@ -54,7 +67,8 @@ export function buildLaunchCommand(req: LaunchRequest, prefs: EmulatorPrefs): La
   const command = binary === 'x64sc' ? configured : join(dirname(configured), binary + extname(configured))
   if (!req.diskPath) return { kind, command, args: [] }
   // -autostart runs the first program, which fails on an empty directory, so only attach (-8) then.
-  return { kind, command, args: req.hasFiles ? ['-autostart', req.diskPath] : ['-8', req.diskPath] }
+  if (!req.hasFiles) return { kind, command, args: ['-8', req.diskPath] }
+  return { kind, command, args: ['-autostart', autostartTarget(req.diskPath, req.program)] }
 }
 
 /** Starts the emulator detached from Imagine. Resolves once it has spawned; `onExit` fires when it quits. */

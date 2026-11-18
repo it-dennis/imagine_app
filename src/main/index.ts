@@ -5,7 +5,7 @@ import { registerDiskHandlers } from './ipc/disk'
 import { registerPrefsHandlers } from './ipc/prefs'
 import { registerIsoHandlers } from './ipc/iso'
 import { registerEmulatorHandlers } from './ipc/emulator'
-import { registerAppHandlers } from './ipc/app'
+import { registerAppHandlers, guardWindowClose } from './ipc/app'
 
 // Lets automated tests run against a throw-away profile instead of the user's real one.
 if (process.env['IMAGINE_USER_DATA']) app.setPath('userData', process.env['IMAGINE_USER_DATA'])
@@ -24,6 +24,8 @@ function createWindow(): void {
       sandbox: true,
     },
   })
+
+  guardWindowClose(win)
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)

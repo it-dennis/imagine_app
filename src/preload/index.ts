@@ -10,6 +10,10 @@ contextBridge.exposeInMainWorld('imagineAPI', {
     delete: (diskId: string) => ipcRenderer.invoke('disk:delete', diskId),
     eject:  (diskId: string) => ipcRenderer.invoke('disk:eject', diskId),
     refresh: (diskId: string) => ipcRenderer.invoke('disk:refresh', diskId),
+    openFile: (diskId: string, ref: unknown) => ipcRenderer.invoke('disk:openFile', diskId, ref),
+    saveFile: (diskId: string, ref: unknown, data: string, expectedSha256: string) =>
+      ipcRenderer.invoke('disk:saveFile', diskId, ref, data, expectedSha256),
+    createFile: (diskId: string, target: unknown, data: string) => ipcRenderer.invoke('disk:createFile', diskId, target, data),
     formats: () => ipcRenderer.invoke('disk:formats'),
   },
   iso: {
@@ -24,6 +28,8 @@ contextBridge.exposeInMainWorld('imagineAPI', {
   app: {
     setState: (state: unknown) => ipcRenderer.invoke('app:setState', state),
     info: () => ipcRenderer.invoke('app:info'),
+    confirmUnsaved: (name: string) => ipcRenderer.invoke('app:confirmUnsaved', name),
+    closeNow: () => ipcRenderer.invoke('app:closeNow'),
     onMenuAction: (cb: (action: string) => void) => {
       const handler = (_e: unknown, action: string) => cb(action)
       ipcRenderer.on('menu:action', handler)

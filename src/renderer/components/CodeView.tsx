@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { base64ToBytes } from '../lib/base64'
-import { detokenizeBasic, type Token } from '../lib/basic'
-import { disassemble6502 } from '../lib/disassembler'
+import { disassemble6502, type Token } from '../lib/disassembler'
 
 interface Props {
   diskId: string
   path: string
-  mode: 'basic' | 'asm'
 }
 
-export const CodeView: React.FC<Props> = ({ diskId, path, mode }) => {
+export const CodeView: React.FC<Props> = ({ diskId, path }) => {
   const { t } = useTranslation()
   const [lines, setLines] = useState<Token[][] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +22,7 @@ export const CodeView: React.FC<Props> = ({ diskId, path, mode }) => {
       .then((b64) => {
         if (cancelled) return
         const bytes = base64ToBytes(b64)
-        setLines(mode === 'basic' ? detokenizeBasic(bytes) : disassemble6502(bytes))
+        setLines(disassemble6502(bytes))
       })
       .catch((err) => {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err))
@@ -32,7 +30,7 @@ export const CodeView: React.FC<Props> = ({ diskId, path, mode }) => {
     return () => {
       cancelled = true
     }
-  }, [diskId, path, mode])
+  }, [diskId, path])
 
   if (error) {
     return (

@@ -1,19 +1,21 @@
-export type System = 'c64' | 'vic20' | 'plus4' | 'amiga' | 'atariST' | 'dos' | 'msx' | 'cpc'
+export type System = 'c64' | 'vic20' | 'plus4' | 'c128' | 'amiga' | 'atariST' | 'dos' | 'msx' | 'cpc'
 export type DiskFormat = 'd64' | 'd71' | 'd81' | 'adf' | 'st' | 'msa' | 'img' | 'dsk' | 'iso'
 export type Theme = 'dark' | 'light' | 'system'
 export type Accent = 'phosphor' | 'amber' | 'c64' | 'amiga' | 'neutral'
 export type Font = 'modern' | 'mono' | 'pixel'
 export type Language = 'de' | 'en'
-export type ActiveTab = 'files' | 'basic' | 'asm' | 'hex'
+export type ActiveTab = 'files' | 'basic' | 'asm' | 'text' | 'hex'
 /** App-level actions the native menu forwards to the renderer. */
 export type MenuAction =
   | 'newDisk' | 'openDisk' | 'writeFile' | 'format' | 'eject' | 'iso'
-  | 'tabFiles' | 'tabBasic' | 'tabAsm' | 'tabHex' | 'toggleSidebar'
+  | 'newFile' | 'save' | 'saveRun' | 'assemble' | 'saveThenClose'
+  | 'tabFiles' | 'tabBasic' | 'tabAsm' | 'tabText' | 'tabHex' | 'toggleSidebar'
   | 'emulatorDisk' | 'emulatorBlank' | 'detectEmulators'
   | 'settings' | 'about'
 
 export type DialogId =
   | 'newDisk'
+  | 'newFile'
   | 'fileBrowser'
   | 'writeFile'
   | 'format'

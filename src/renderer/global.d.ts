@@ -9,6 +9,8 @@ interface NewDiskOptions {
   folder: string
 }
 
+type FileRef = Pick<DiskFile, 'name' | 'path' | 'startTrack' | 'startSector'>
+
 interface WriteTarget {
   name: string
   type: DiskFile['type']
@@ -25,6 +27,9 @@ interface ImagineAPI {
     eject: (diskId: string) => Promise<boolean>
     refresh: (diskId: string) => Promise<VirtualDisk>
     formats: () => Promise<DiskFormat[]>
+    openFile: (diskId: string, ref: FileRef) => Promise<{ data: string; sha256: string }>
+    saveFile: (diskId: string, ref: FileRef, data: string, expectedSha256: string) => Promise<{ disk: VirtualDisk; file: DiskFile }>
+    createFile: (diskId: string, target: WriteTarget, data: string) => Promise<{ disk: VirtualDisk; file: DiskFile }>
   }
   iso: {
     create: (opts: { source: string; label: string; output: string }) => Promise<{ path: string; sizeBytes: number }>
@@ -36,12 +41,14 @@ interface ImagineAPI {
     defaultFolder: () => Promise<string>
   }
   app: {
-    setState: (state: { hasDisk: boolean; language: Language }) => Promise<void>
+    setState: (state: { hasDisk: boolean; language: Language; dirty: boolean; canRun: boolean; canAssemble: boolean }) => Promise<void>
+    confirmUnsaved: (name: string) => Promise<'save' | 'discard' | 'cancel'>
+    closeNow: () => Promise<void>
     info: () => Promise<{ version: string }>
     onMenuAction: (cb: (action: MenuAction) => void) => () => void
   }
   emulator: {
-    launch: (opts: { diskId?: string; system?: System; hasFiles?: boolean }) => Promise<{ kind: 'vice' | 'hatari' }>
+    launch: (opts: { diskId?: string; system?: System; hasFiles?: boolean; program?: string }) => Promise<{ kind: 'vice' | 'hatari' }>
     detect: () => Promise<{ vicePath?: string; hatariPath?: string }>
     onDiskChanged: (cb: (diskId: string) => void) => () => void
   }

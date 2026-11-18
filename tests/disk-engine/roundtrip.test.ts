@@ -20,6 +20,8 @@ function payload(size: number, seed = 1): Buffer {
 // [format, small file size, large file size (spans many sectors/clusters/extension blocks)]
 const WRITABLE: [DiskFormat, number, number][] = [
   ['d64', 100, 40_000],
+  ['d71', 100, 150_000],
+  ['d81', 100, 600_000],
   ['st', 100, 200_000],
   ['img', 100, 500_000],
   ['adf', 100, 100_000],
@@ -121,6 +123,6 @@ describe('registry', () => {
   })
 
   it('reports unregistered formats cleanly', () => {
-    expect(() => getPlugin('d81')).toThrow(/not|No disk format plugin/i)
+    expect(() => getPlugin('dsk')).toThrow(/not|No disk format plugin/i)
   })
 })

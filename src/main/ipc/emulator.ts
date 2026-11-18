@@ -11,12 +11,13 @@ export function registerEmulatorHandlers(): void {
   /** Launches the emulator for an open disk, or a blank session for `system` when no disk is given. */
   ipcMain.handle(
     'emu:launch',
-    async (e, opts: { diskId?: string; system?: System; hasFiles?: boolean }) => {
+    async (e, opts: { diskId?: string; system?: System; hasFiles?: boolean; program?: string }) => {
       const prefs = await readPrefs()
       const disk = opts.diskId ? getOpenDisk(opts.diskId) : null
-      const system = disk?.system ?? opts.system ?? 'c64'
+      // an explicit system wins: a D71 can hold C64 or C128 programs, the program decides
+      const system = opts.system ?? disk?.system ?? 'c64'
       const cmd = buildLaunchCommand(
-        { system, diskPath: disk?.path, hasFiles: opts.hasFiles },
+        { system, diskPath: disk?.path, hasFiles: opts.hasFiles, program: opts.program },
         { vicePath: prefs.vicePath as string | undefined, hatariPath: prefs.hatariPath as string | undefined },
       )
 

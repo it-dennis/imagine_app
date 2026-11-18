@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mkdtemp, mkdir, writeFile, rm, readFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import { buildLaunchCommand, detectEmulators, emulatorFor, launchEmulator } from '../../src/main/services/emulators'
+import { autostartTarget, buildLaunchCommand, detectEmulators, emulatorFor, launchEmulator } from '../../src/main/services/emulators'
 
 const prefs = { vicePath: join('C:', 'vice', 'bin', 'x64sc.exe'), hatariPath: join('C:', 'hatari', 'hatari.exe') }
 
@@ -123,5 +123,25 @@ describe('detectEmulators', () => {
     } finally {
       await rm(root, { recursive: true, force: true })
     }
+  })
+})
+
+describe('running a specific program', () => {
+  it('passes image:name in lowercase (VICE treats ASCII capitals as shifted PETSCII)', () => {
+    expect(autostartTarget('D:/x.d64', 'HELLO')).toBe('D:/x.d64:hello')
+    expect(autostartTarget('D:/x.d64', 'My Prog-1.PRG')).toBe('D:/x.d64:my prog-1.prg')
+  })
+
+  it('falls back to the first program when the name cannot be passed reliably', () => {
+    expect(autostartTarget('D:/x.d64', 'A:B')).toBe('D:/x.d64')
+    expect(autostartTarget('D:/x.d64', 'NAMEÄ')).toBe('D:/x.d64')
+    expect(autostartTarget('D:/x.d64', 'THIS NAME IS TOO LONG')).toBe('D:/x.d64')
+    expect(autostartTarget('D:/x.d64')).toBe('D:/x.d64')
+  })
+
+  it('uses -autostart image:name for a disk with files and the C128 binary for c128', () => {
+    const c = buildLaunchCommand({ system: 'c64', diskPath: 'e.d64', hasFiles: true, program: 'PROG' }, prefs)
+    expect(c.args).toEqual(['-autostart', 'e.d64:prog'])
+    expect(buildLaunchCommand({ system: 'c128' }, prefs).command).toBe(join('C:', 'vice', 'bin', 'x128.exe'))
   })
 })

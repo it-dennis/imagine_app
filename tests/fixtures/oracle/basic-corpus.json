@@ -1,0 +1,38 @@
+{
+  "v2": [
+    "10 print \"hello\";a$:goto 10",
+    "30 rem this is a test: print goto",
+    "40 data 1,2,\"a:b\",3:print \"x\"",
+    "50 for i=1 to 10 step 2:next i",
+    "60 if a>=b then 100",
+    "70 on x goto 10,20,30",
+    "80 total=1",
+    "90 print#1,\"x\":input#2,a$",
+    "100 print chr$(147);left$(a$,2)",
+    "110 open 1,8,15,\"s0:file\":close 1",
+    "120 poke 53280,0:sys 49152",
+    "140 a=sqr(2)*3^2/4-1+b",
+    "150 goto100",
+    "160 gosub 200:return",
+    "170 print \"unclosed",
+    "180 data a,b,c",
+    "190 go to 10"
+  ],
+  "v35": [
+    "10 color 1,2:graphic 1:draw 1,0,0 to 100,100",
+    "20 sound 1,500,60:do:loop until a",
+    "30 print using \"###\";x",
+    "40 trap 100:resume next",
+    "50 rem go to the end",
+    "60 if a then b else c"
+  ],
+  "v70": [
+    "10 dopen#1,\"f\":graphic 1,1:circle 1,100,100,20,20",
+    "20 sprite 1,1,2:window 0,0,10,10:do:loop until a",
+    "30 pen 1:pot:bank 15",
+    "40 print hex$(255);instr(a$,\"x\")",
+    "50 fast:slow:begin:bend",
+    "60 gosub 100:go to 20",
+    "70 rem dopen is not tokenized here"
+  ]
+}

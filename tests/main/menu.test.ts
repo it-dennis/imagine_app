@@ -8,6 +8,9 @@ function ctx(over: Partial<MenuContext> = {}): MenuContext {
   return {
     t: translator('en'),
     hasDisk: true,
+    dirty: false,
+    canRun: false,
+    canAssemble: false,
     isDev: false,
     platform: 'win32',
     send: vi.fn(),
@@ -83,5 +86,27 @@ describe('native menu', () => {
     const german = buildMenuTemplate(ctx({ t: translator('de') }))
     expect(german.map((m) => m.label)).toEqual(['Datei', 'Bearbeiten', 'Ansicht', 'Werkzeuge', 'Hilfe'])
     expect(flatten(german).some((i) => i.label === 'Neue virtuelle Diskette…')).toBe(true)
+  })
+
+  it('Save, Save and run and Assemble follow the editor state', () => {
+    const idle = buildMenuTemplate(ctx())
+    expect(find(idle, 'Save').enabled).toBe(false)
+    expect(find(idle, 'Save and run').enabled).toBe(false)
+    expect(find(idle, 'Assemble').enabled).toBe(false)
+    const busy = buildMenuTemplate(ctx({ dirty: true, canRun: true, canAssemble: true }))
+    expect(find(busy, 'Save').enabled).toBe(true)
+    expect(find(busy, 'Save and run').enabled).toBe(true)
+    expect(find(busy, 'Assemble').enabled).toBe(true)
+  })
+
+  it('has one owner per key: Save, run, assemble and the older disk actions do not collide', () => {
+    const menu = buildMenuTemplate(ctx())
+    const key = (label: string) => find(menu, label).accelerator
+    expect(key('Save')).toBe('CmdOrCtrl+S')
+    expect(key('Save and run')).toBe('F5')
+    expect(key('Assemble')).toBe('F7')
+    expect(key('Open emulator with loaded disk')).toBe('CmdOrCtrl+F5')
+    expect(key('Write to loaded disk…')).toBe('CmdOrCtrl+I')
+    expect(key('New file…')).toBe('CmdOrCtrl+Shift+N')
   })
 })

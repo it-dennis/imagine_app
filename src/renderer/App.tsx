@@ -11,11 +11,15 @@ import { WriteFileDialog } from './screens/dialogs/WriteFileDialog'
 import { FormatDialog } from './screens/dialogs/FormatDialog'
 import { DeleteDialog } from './screens/dialogs/DeleteDialog'
 import { IsoDialog } from './screens/dialogs/IsoDialog'
+import { NewFileDialog } from './screens/dialogs/NewFileDialog'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { AboutScreen } from './screens/AboutScreen'
 import { useWorkspaceStore } from './state/workspace.store'
 import { useUIStore } from './state/ui.store'
 import { usePrefsStore } from './state/prefs.store'
+import { useEditorStore } from './state/editor.store'
+import { isDirty } from './lib/editor-doc'
+import { reloadCurrent } from './lib/editor-actions'
 import { runMenuAction } from './lib/menu-actions'
 import { Check, Warning, Save } from './components/icons'
 
@@ -28,6 +32,11 @@ export const App: React.FC = () => {
   const { activeDialog, closeDialog, toasts, removeToast } = useUIStore()
   const { theme, accent, font, language } = usePrefsStore()
   const [version, setVersion] = useState('')
+  const doc = useEditorStore((s) => s.doc)
+  const dirty = isDirty(doc)
+  const cbmDoc = !!doc && ['c64', 'vic20', 'plus4', 'c128'].includes(doc.system)
+  const canRun = cbmDoc && !!doc && (doc.kind === 'asm' || (doc.kind === 'basic' && !doc.readOnlyReason))
+  const canAssemble = cbmDoc && doc?.kind === 'asm'
   const activeDisk = disks.find((d) => d.id === activeDiskId) ?? null
 
   useEffect(() => {
@@ -39,6 +48,12 @@ export const App: React.FC = () => {
     return window.imagineAPI.emulator.onDiskChanged(async (diskId) => {
       try {
         useWorkspaceStore.getState().updateDisk(await window.imagineAPI.disk.refresh(diskId))
+        const open = useEditorStore.getState().doc
+        if (open && open.diskId === diskId) {
+          // an open file may have been changed by the emulator: reload it, unless there are unsaved edits
+          if (isDirty(open)) useUIStore.getState().addToast({ intent: 'warning', title: t('edDiskChangedDirty'), duration: 8000 })
+          else await reloadCurrent()
+        }
         useUIStore.getState().addToast({ intent: 'info', title: t('emuDiskReloaded') })
       } catch { /* disk was ejected meanwhile */ }
     })
@@ -49,8 +64,8 @@ export const App: React.FC = () => {
 
   // The native menu needs to know whether a disk is loaded and which language to use.
   useEffect(() => {
-    void window.imagineAPI.app.setState({ hasDisk: !!activeDisk, language })
-  }, [activeDisk, language])
+    void window.imagineAPI.app.setState({ hasDisk: !!activeDisk, language, dirty, canRun, canAssemble })
+  }, [activeDisk, language, dirty, canRun, canAssemble])
 
   useEffect(() => { void i18n.changeLanguage(language) }, [language, i18n])
   useEffect(() => { void window.imagineAPI.app.info().then((i) => setVersion(i.version)) }, [])
@@ -76,6 +91,7 @@ export const App: React.FC = () => {
   if (showSplash) return <SplashScreen />
 
   const dialogContent = activeDialog === 'newDisk'      ? <NewDiskWizard />
+    : activeDialog === 'newFile'     ? <NewFileDialog />
     : activeDialog === 'fileBrowser' ? <FileBrowserDialog />
     : activeDialog === 'writeFile'   ? <WriteFileDialog />
     : activeDialog === 'format'      ? <FormatDialog />

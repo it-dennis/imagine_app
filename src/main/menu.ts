@@ -12,6 +12,12 @@ export const translator = (lang: MenuLanguage) => (key: string): string => DICTS
 export interface MenuContext {
   t: (key: string) => string
   hasDisk: boolean
+  /** The editor holds unsaved changes. */
+  dirty: boolean
+  /** The open document is a runnable program on a CBM disk. */
+  canRun: boolean
+  /** The open document is assembler source on a CBM disk. */
+  canAssemble: boolean
   isDev: boolean
   platform: NodeJS.Platform
   /** Forwards an app-level action to the renderer. */
@@ -24,7 +30,7 @@ export const LICENSE_URL = 'https://www.gnu.org/licenses/gpl-3.0.html'
 
 /** Native application menu. Pure: all side effects go through the context so it can be unit-tested. */
 export function buildMenuTemplate(ctx: MenuContext): MenuItemConstructorOptions[] {
-  const { t, send, hasDisk } = ctx
+  const { t, send, hasDisk, dirty, canRun, canAssemble } = ctx
   const action = (label: string, id: MenuAction, accelerator?: string, enabled = true): MenuItemConstructorOptions => ({
     label,
     accelerator,
@@ -37,7 +43,12 @@ export function buildMenuTemplate(ctx: MenuContext): MenuItemConstructorOptions[
     action(t('miNewDisk'), 'newDisk', 'CmdOrCtrl+N'),
     action(t('miOpenDisk'), 'openDisk', 'CmdOrCtrl+O'),
     sep,
-    action(t('miWriteToDisk'), 'writeFile', 'CmdOrCtrl+S', hasDisk),
+    action(t('miNewFile'), 'newFile', 'CmdOrCtrl+Shift+N', hasDisk),
+    action(t('miSave'), 'save', 'CmdOrCtrl+S', dirty),
+    action(t('miSaveRun'), 'saveRun', 'F5', canRun),
+    action(t('miAssemble'), 'assemble', 'F7', canAssemble),
+    sep,
+    action(t('miWriteToDisk'), 'writeFile', 'CmdOrCtrl+I', hasDisk),
     action(t('miFormatDisk'), 'format', undefined, hasDisk),
     action(t('miEjectDisk'), 'eject', 'CmdOrCtrl+W', hasDisk),
     sep,
@@ -49,7 +60,8 @@ export function buildMenuTemplate(ctx: MenuContext): MenuItemConstructorOptions[
     action(t('tabFiles'), 'tabFiles', 'CmdOrCtrl+1', hasDisk),
     action(t('tabBasic'), 'tabBasic', 'CmdOrCtrl+2', hasDisk),
     action(t('tabAsm'), 'tabAsm', 'CmdOrCtrl+3', hasDisk),
-    action(t('tabHex'), 'tabHex', 'CmdOrCtrl+4', hasDisk),
+    action(t('tabText'), 'tabText', 'CmdOrCtrl+4', hasDisk),
+    action(t('tabHex'), 'tabHex', 'CmdOrCtrl+5', hasDisk),
   ]
 
   const view: MenuItemConstructorOptions[] = [
@@ -85,7 +97,7 @@ export function buildMenuTemplate(ctx: MenuContext): MenuItemConstructorOptions[
     {
       label: t('menuTools'),
       submenu: [
-        action(t('miOpenInVice'), 'emulatorDisk', 'F5', hasDisk),
+        action(t('miOpenInVice'), 'emulatorDisk', 'CmdOrCtrl+F5', hasDisk),
         action(t('miBlankVice'), 'emulatorBlank', 'Shift+F5'),
         action(t('miDetectEmu'), 'detectEmulators'),
         sep,

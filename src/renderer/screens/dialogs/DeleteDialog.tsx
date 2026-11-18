@@ -2,6 +2,8 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '../../state/ui.store'
 import { useWorkspaceStore } from '../../state/workspace.store'
+import { useEditorStore } from '../../state/editor.store'
+import { confirmDiscard } from '../../lib/editor-actions'
 import { Trash, Warning } from '../../components/icons'
 
 export const DeleteDialog: React.FC = () => {
@@ -13,6 +15,8 @@ export const DeleteDialog: React.FC = () => {
 
   const confirm = async () => {
     if (!disk) return
+    if (!(await confirmDiscard(t, disk.id))) return
+    if (useEditorStore.getState().doc?.diskId === disk.id) useEditorStore.getState().close()
     try {
       await window.imagineAPI.disk.delete(disk.id)
     } catch {

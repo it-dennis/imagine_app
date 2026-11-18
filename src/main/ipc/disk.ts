@@ -1,11 +1,16 @@
 import { ipcMain } from 'electron'
 import { randomUUID } from 'crypto'
 import { app } from 'electron'
+import { createHash } from 'crypto'
 import { readFile, writeFile as writeFileFs, stat } from 'fs/promises'
-import { getPlugin, formatFromPath, defaultSystemForFormat, creatableFormats } from '../services/disk-engine'
-import { defaultFolder, resolveFolder, sanitizeFileName, writeNewFile } from '../services/disk-files'
+import { getPlugin, formatFromPath, defaultSystemForFormat, creatableFormats, readFileEntry, replaceFileEntry } from '../services/disk-engine'
+import { defaultFolder, resolveFolder, sanitizeFileName, writeNewFile, writeFileAtomic } from '../services/disk-files'
 import { registerOpenDisk, getOpenDisk, removeOpenDisk } from '../services/disk-registry'
 import type { DiskFile, DiskFormat, System, VirtualDisk } from '../../shared/types'
+
+const sha256 = (data: Buffer): string => createHash('sha256').update(data).digest('hex')
+
+type FileRef = Pick<DiskFile, 'name' | 'path' | 'startTrack' | 'startSector'>
 
 async function buildVirtualDisk(
   id: string,
@@ -97,6 +102,51 @@ export function registerDiskHandlers(): void {
     await writeFileFs(path, updated)
     return buildVirtualDisk(diskId, path, format, system)
   })
+
+  /** Reads one entry (identified by its directory entry, not just its name) together with a content hash. */
+  ipcMain.handle('disk:openFile', async (_e, diskId: string, ref: FileRef) => {
+    const { path, format } = getOpenDisk(diskId)
+    const data = await readFileEntry(getPlugin(format), await readFile(path), ref)
+    return { data: data.toString('base64'), sha256: sha256(data) }
+  })
+
+  /**
+   * Saves edited contents back into the image. `expectedSha256` is the hash of what the editor loaded;
+   * if the file changed meanwhile (e.g. an emulator wrote to the image) the save is refused instead of
+   * silently overwriting that work.
+   */
+  ipcMain.handle(
+    'disk:saveFile',
+    async (_e, diskId: string, ref: FileRef, dataBase64: string, expectedSha256: string) => {
+      const { path, format, system } = getOpenDisk(diskId)
+      const plugin = getPlugin(format)
+      const image = await readFile(path)
+      const current = await readFileEntry(plugin, image, ref)
+      if (sha256(current) !== expectedSha256) {
+        throw new Error('The file on the disk changed since you opened it (for example by an emulator). Reload it before saving.')
+      }
+      const { buffer, file } = await replaceFileEntry(plugin, image, ref, Buffer.from(dataBase64, 'base64'))
+      await writeFileAtomic(path, buffer)
+      return { disk: await buildVirtualDisk(diskId, path, format, system), file }
+    },
+  )
+
+  /** Creates a new file from editor contents. Refuses a name that already exists on the disk. */
+  ipcMain.handle(
+    'disk:createFile',
+    async (_e, diskId: string, target: { name: string; type: DiskFile['type'] }, dataBase64: string) => {
+      const { path, format, system } = getOpenDisk(diskId)
+      const plugin = getPlugin(format)
+      const image = await readFile(path)
+      const clash = (await plugin.listFiles(image)).some((f) => (f.path ?? f.name).toUpperCase() === target.name.toUpperCase())
+      if (clash) throw new Error(`A file named "${target.name}" already exists on this disk.`)
+      const buffer = await plugin.writeFile(image, { name: target.name, data: Buffer.from(dataBase64, 'base64') }, target)
+      await writeFileAtomic(path, buffer)
+      const disk = await buildVirtualDisk(diskId, path, format, system)
+      const file = disk.files.find((f) => (f.path ?? f.name).toUpperCase() === target.name.toUpperCase())!
+      return { disk, file }
+    },
+  )
 
   ipcMain.handle('disk:refresh', async (_e, diskId: string) => {
     const { path, format, system } = getOpenDisk(diskId)

@@ -22,6 +22,9 @@ export interface FormatOpts {
   id?: string
 }
 
+/** Identifies one directory entry. Names alone are not unique (D64 allows duplicates, PETSCII names are lossy). */
+export type FileRef = Pick<DiskFile, 'name' | 'path' | 'startTrack' | 'startSector'>
+
 export interface DiskFormatPlugin {
   id: DiskFormat
   systems: System[]
@@ -32,4 +35,8 @@ export interface DiskFormatPlugin {
   writeFile(buffer: Buffer, file: SourceFile, target: WriteTarget): Promise<Buffer>
   deleteFile(buffer: Buffer, fileName: string): Promise<Buffer>
   format(opts: FormatOpts): Promise<Buffer>
+  /** Reads exactly the entry `ref` points at. Falls back to readFile(path) when absent. */
+  readEntry?(buffer: Buffer, ref: FileRef): Promise<Buffer>
+  /** Replaces the contents of an entry in place, keeping its name and type. Throws and leaves `buffer` untouched on failure. */
+  replaceFile?(buffer: Buffer, ref: FileRef, data: Buffer): Promise<Buffer>
 }

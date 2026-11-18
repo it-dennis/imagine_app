@@ -58,7 +58,7 @@ describe('writeNewFile', () => {
 describe('creatableFormats', () => {
   it('offers only formats that have a working plugin', () => {
     const formats = creatableFormats()
-    expect(formats).toEqual(expect.arrayContaining(['d64', 'st', 'msa', 'adf', 'img']))
-    for (const f of ['d71', 'd81', 'dsk', 'iso']) expect(formats).not.toContain(f)
+    expect(formats).toEqual(expect.arrayContaining(['d64', 'd71', 'd81', 'st', 'msa', 'adf', 'img']))
+    for (const f of ['dsk', 'iso']) expect(formats).not.toContain(f)
   })
 })

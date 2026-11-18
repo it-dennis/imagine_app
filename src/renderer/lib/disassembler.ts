@@ -1,4 +1,7 @@
-import type { Token } from './basic'
+export interface Token {
+  text: string
+  cls?: string
+}
 
 // Disassembler for the 151 documented 6502 opcodes (no illegal/undocumented
 // opcodes). PRG files store a 2-byte load address; disassembly addresses
